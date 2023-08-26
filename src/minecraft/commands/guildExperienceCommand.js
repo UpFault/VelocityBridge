@@ -1,0 +1,43 @@
+const minecraftCommand = require("../../contracts/minecraftCommand.js");
+const hypixel = require("../../contracts/API/HypixelRebornAPI.js");
+const { getUUID } = require("../../contracts/API/PlayerDBAPI.js");
+
+class GuildExperienceCommand extends minecraftCommand {
+  constructor(minecraft) {
+    super(minecraft);
+
+    this.name = "guildexp";
+    this.aliases = ["gexp"];
+    this.description = "Guilds experience of specified user.";
+    this.options = [
+      {
+        name: "username",
+        description: "Minecraft username",
+        required: false,
+      },
+    ];
+  }
+
+  async onCommand(username, message) {
+    username = this.getArgs(message)[0] || username;
+
+    try {
+
+      return;
+      const [uuid, guild] = await Promise.all([getUUID(username), hypixel.getGuild("player", username)]);
+
+      const player = guild.members.find((member) => member.uuid == uuid);
+
+      if (player === undefined) {
+        // eslint-disable-next-line no-throw-literal
+        throw "Player is not in the Guild.";
+      }
+
+      this.send(`/gc ${username}'s Weekly Guild Experience: ${player.weeklyExperience.toLocaleString()}.`);
+    } catch (error) {
+      this.send(`/gc ${error.toString().replace("[hypixel-api-reborn] ", "")}`);
+    }
+  }
+}
+
+module.exports = GuildExperienceCommand;
