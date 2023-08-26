@@ -13,24 +13,24 @@
     "prettier:fix": "npx prettier --write .",
     "nodemon": "nodemon index"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/DuckySoLucky/hypixel-discord-chat-bridge.git"
-  },
-  "keywords": [
-    "hypixel",
-    "discord",
-    "chat",
-    "bridge"
-  ],
-  "authors": [
-    "DuckySoLucky",
-    "UpFault"
-  ],
-  "license": "MIT",
-  "bugs": {
-    "url": ""
-  },
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/UpFault/VelocityBridge.git"
+    },
+    "keywords": [
+      "hypixel",
+      "discord",
+      "chat",
+      "bridge"
+    ],
+    "authors": [
+      "DuckySoLucky",
+      "UpFault"
+    ],
+    "license": "MIT",
+    "bugs": {
+      "url": "https://github.com/UpFault/VelocityBridge/issues"
+    },  
   "homepage": "",
   "dependencies": {
     "@discordjs/rest": "^1.5.0",

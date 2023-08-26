@@ -1,7 +1,7 @@
 const minecraftCommand = require("../../contracts/minecraftCommand.js");
 const { uploadImage } = require("../../contracts/API/imgurAPI.js");
 const axios = require("axios");
-
+const commandCooldowns = new Map();
 class KittyCommand extends minecraftCommand {
   constructor(minecraft) {
     super(minecraft);
@@ -14,20 +14,27 @@ class KittyCommand extends minecraftCommand {
 
   async onCommand(username, message) {
     try {
+      const currentTime = Date.now();
+      const lastCommandTime = commandCooldowns.get(username);
 
-      this.send("/gc You really thought you'd see a picture of a cat didn't you?")
-      return;
+      if (lastCommandTime !== undefined && currentTime - lastCommandTime < 30000) {
+        this.send(`/gc Please wait a bit before using this command again.`);
+        return;
+      }
+
       const { data } = await axios.get(`https://api.thecatapi.com/v1/images/search`);
 
       if (data === undefined) {
-        // eslint-disable-next-line no-throw-literal
-        throw "An error occured while fetching the image. Please try again later.";
+        throw "An error occurred while fetching the image. Please try again later.";
       }
 
       const link = data[0].url;
       const upload = await uploadImage(link);
 
       this.send(`/gc Cute Cat: ${upload.data.link}`);
+
+      // Update last command time for the user
+      commandCooldowns.set(username, currentTime);
     } catch (error) {
       this.send(`/gc Error: ${error ?? "Something went wrong.."}`);
     }
