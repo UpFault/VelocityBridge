@@ -13,24 +13,24 @@
     "prettier:fix": "npx prettier --write .",
     "nodemon": "nodemon index"
   },
-    "repository": {
-      "type": "git",
-      "url": "git+https://github.com/UpFault/VelocityBridge.git"
-    },
-    "keywords": [
-      "hypixel",
-      "discord",
-      "chat",
-      "bridge"
-    ],
-    "authors": [
-      "DuckySoLucky",
-      "UpFault"
-    ],
-    "license": "MIT",
-    "bugs": {
-      "url": "https://github.com/UpFault/VelocityBridge/issues"
-    },  
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/UpFault/VelocityBridge.git"
+  },
+  "keywords": [
+    "hypixel",
+    "discord",
+    "chat",
+    "bridge"
+  ],
+  "authors": [
+    "DuckySoLucky",
+    "UpFault"
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/UpFault/VelocityBridge/issues"
+  },
   "homepage": "",
   "dependencies": {
     "@discordjs/rest": "^1.5.0",
@@ -50,6 +50,7 @@
     "mineflayer": "^4.8.1",
     "mkdirp": "^3.0.1",
     "moment": "^2.29.4",
+    "node-cache": "^5.1.2",
     "node-cron": "^3.0.2",
     "prismarine-nbt": "^2.2.1",
     "rss-parser": "^3.13.0",

@@ -1,6 +1,9 @@
 const minecraftCommand = require("../../contracts/minecraftCommand.js");
 const hypixel = require("../../contracts/API/HypixelRebornAPI.js");
 const { getUUID } = require("../../contracts/API/PlayerDBAPI.js");
+const NodeCache = require("node-cache");
+
+const cache = new NodeCache({ stdTTL: 604800 }); // 1 week in seconds
 
 class GuildExperienceCommand extends minecraftCommand {
   constructor(minecraft) {
@@ -22,14 +25,16 @@ class GuildExperienceCommand extends minecraftCommand {
     username = this.getArgs(message)[0] || username;
 
     try {
-
-      return;
-      const [uuid, guild] = await Promise.all([getUUID(username), hypixel.getGuild("player", username)]);
+      let [uuid, guild] = cache.get(username) || [];
+      
+      if (!uuid || !guild) {
+        [uuid, guild] = await Promise.all([getUUID(username), hypixel.getGuild("player", username)]);
+        cache.set(username, [uuid, guild]);
+      }
 
       const player = guild.members.find((member) => member.uuid == uuid);
 
       if (player === undefined) {
-        // eslint-disable-next-line no-throw-literal
         throw "Player is not in the Guild.";
       }
 

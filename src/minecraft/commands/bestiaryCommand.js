@@ -2,8 +2,11 @@ const { getLatestProfile } = require("../../../API/functions/getLatestProfile.js
 const { formatUsername } = require("../../contracts/helperFunctions.js");
 const minecraftCommand = require("../../contracts/minecraftCommand.js");
 const { getBestiary } = require("../../../API/stats/bestiary.js");
+const NodeCache = require("node-cache");
 
-class EightBallCommand extends minecraftCommand {
+const cache = new NodeCache({ stdTTL: 604800 }); // 1 week in seconds
+
+class bestiaryCommand extends minecraftCommand {
   constructor(minecraft) {
     super(minecraft);
 
@@ -13,7 +16,7 @@ class EightBallCommand extends minecraftCommand {
     this.options = [
       {
         name: "username",
-        description: "Mincraft Username",
+        description: "Minecraft Username",
         required: false,
       },
     ];
@@ -21,12 +24,15 @@ class EightBallCommand extends minecraftCommand {
 
   async onCommand(username, message) {
     try {
-
-      return;
       const playerUsername = username;
       username = this.getArgs(message)[0] || username;
 
-      const data = await getLatestProfile(username);
+      let data = cache.get(username);
+
+      if (!data) {
+        data = await getLatestProfile(username);
+        cache.set(username, data);
+      }
 
       username = formatUsername(username, data.profileData?.game_mode);
 
@@ -71,4 +77,4 @@ class EightBallCommand extends minecraftCommand {
   }
 }
 
-module.exports = EightBallCommand;
+module.exports = bestiaryCommand;

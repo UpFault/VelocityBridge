@@ -1,6 +1,9 @@
 const minecraftCommand = require("../../contracts/minecraftCommand.js");
 const hypixel = require("../../contracts/API/HypixelRebornAPI.js");
 const { capitalize, formatNumber } = require("../../contracts/helperFunctions.js");
+const NodeCache = require("node-cache");
+
+const cache = new NodeCache({ stdTTL: 604800 }); // 1 week in seconds
 
 class GuildInformationCommand extends minecraftCommand {
   constructor(minecraft) {
@@ -20,13 +23,16 @@ class GuildInformationCommand extends minecraftCommand {
 
   async onCommand(username, message) {
     try {
-
-      return;
       const guildName = this.getArgs(message)
         .map((arg) => capitalize(arg))
         .join(" ");
 
-      const guild = await hypixel.getGuild("name", guildName);
+      let guild = cache.get(guildName);
+
+      if (!guild) {
+        guild = await hypixel.getGuild("name", guildName);
+        cache.set(guildName, guild);
+      }
 
       this.send(
         `/gc Guild ${guildName} | Tag: [${guild.tag}] | Members: ${guild.members.length} | Level: ${

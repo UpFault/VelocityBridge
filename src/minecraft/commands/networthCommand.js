@@ -2,6 +2,9 @@ const minecraftCommand = require("../../contracts/minecraftCommand.js");
 const { getNetworth } = require("skyhelper-networth");
 const { getLatestProfile } = require("../../../API/functions/getLatestProfile.js");
 const { formatNumber, formatUsername } = require("../../contracts/helperFunctions.js");
+const NodeCache = require("node-cache");
+
+const cache = new NodeCache({ stdTTL: 604800 }); // 1 week in seconds
 
 class NetWorthCommand extends minecraftCommand {
   constructor(minecraft) {
@@ -21,10 +24,14 @@ class NetWorthCommand extends minecraftCommand {
 
   async onCommand(username, message) {
     try {
-
       username = this.getArgs(message)[0] || username;
 
-      const data = await getLatestProfile(username, { museum: true });
+      let data = cache.get(username);
+
+      if (!data) {
+        data = await getLatestProfile(username, { museum: true });
+        cache.set(username, data);
+      }
 
       username = formatUsername(username, data.profileData?.game_mode);
 
