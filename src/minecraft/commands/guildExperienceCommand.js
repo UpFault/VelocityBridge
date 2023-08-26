@@ -4,6 +4,7 @@ const { getUUID } = require("../../contracts/API/PlayerDBAPI.js");
 const NodeCache = require("node-cache");
 
 const cache = new NodeCache({ stdTTL: 604800 }); // 1 week in seconds
+const commandCooldowns = new Set();
 
 class GuildExperienceCommand extends minecraftCommand {
   constructor(minecraft) {
@@ -22,11 +23,21 @@ class GuildExperienceCommand extends minecraftCommand {
   }
 
   async onCommand(username, message) {
-    username = this.getArgs(message)[0] || username;
-
     try {
+      if (commandCooldowns.has(username)) {
+        this.send(`/gc Please wait a bit before using this command again.`);
+        return;
+      }
+
+      commandCooldowns.add(username);
+      setTimeout(() => {
+        commandCooldowns.delete(username);
+      }, 10000); // 10 seconds in milliseconds
+
+      username = this.getArgs(message)[0] || username;
+
       let [uuid, guild] = cache.get(username) || [];
-      
+
       if (!uuid || !guild) {
         [uuid, guild] = await Promise.all([getUUID(username), hypixel.getGuild("player", username)]);
         cache.set(username, [uuid, guild]);

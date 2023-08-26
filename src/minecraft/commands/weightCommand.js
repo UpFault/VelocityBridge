@@ -1,8 +1,10 @@
 const minecraftCommand = require("../../contracts/minecraftCommand.js");
 const { getLatestProfile } = require("../../../API/functions/getLatestProfile.js");
-const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const getWeight = require("../../../API/stats/weight.js");
 const { formatUsername, formatNumber } = require("../../contracts/helperFunctions.js");
+const NodeCache = require("node-cache");
+
+const cache = new NodeCache({ stdTTL: 604800 }); // 1 week in seconds
 
 class StatsCommand extends minecraftCommand {
   constructor(minecraft) {
@@ -22,28 +24,25 @@ class StatsCommand extends minecraftCommand {
 
   async onCommand(username, message) {
     try {
-
-      return;
       username = this.getArgs(message)[0] || username;
-      const data = await getLatestProfile(username);
+
+      let data = cache.get(username);
+
+      if (!data) {
+        data = await getLatestProfile(username);
+        cache.set(username, data);
+      }
 
       username = formatUsername(data.profileData?.displayname || username);
 
       const profile = getWeight(data.profile, data.uuid);
 
-      const lilyW = `Lily Weight: ${formatNumber(profile.lily.total)} | Skills: ${formatNumber(
-        profile.lily.skills.total
-      )} | Slayer: ${formatNumber(profile.lily.slayer.total)} | Dungeons: ${formatNumber(
-        profile.lily.catacombs.total
-      )}`;
       const senitherW = `Senither Weight: ${formatNumber(profile.senither.total)} | Skills: ${formatNumber(
         Object.keys(profile.senither.skills)
           .map((skill) => profile.senither.skills[skill].total)
           .reduce((a, b) => a + b, 0)
       )} | Dungeons: ${formatNumber(profile.senither.dungeons.total)}`;
       this.send(`/gc ${username}'s ${senitherW}`);
-      await delay(690);
-      this.send(`/gc ${username}'s ${lilyW}`);
     } catch (error) {
       this.send(`/gc Error: ${error}`);
     }
