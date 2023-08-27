@@ -5,6 +5,7 @@ const { formatUsername, formatNumber } = require("../../contracts/helperFunction
 const NodeCache = require("node-cache");
 
 const cache = new NodeCache({ stdTTL: 604800 }); // 1 week in seconds
+const commandCooldowns = new Set();
 
 class StatsCommand extends minecraftCommand {
   constructor(minecraft) {
@@ -24,6 +25,16 @@ class StatsCommand extends minecraftCommand {
 
   async onCommand(username, message) {
     try {
+      if (commandCooldowns.has(username)) {
+        this.send(`/gc Please wait a bit before using this command again.`);
+        return;
+      }
+
+      commandCooldowns.add(username);
+      setTimeout(() => {
+        commandCooldowns.delete(username);
+      }, 60000); // 1 minute in milliseconds
+
       username = this.getArgs(message)[0] || username;
 
       let data = cache.get(username);

@@ -3,13 +3,16 @@ const { uploadImage } = require("../../contracts/API/imgurAPI.js");
 const { decodeData, formatUsername } = require("../../contracts/helperFunctions.js");
 const minecraftCommand = require("../../contracts/minecraftCommand.js");
 const { renderLore } = require("../../contracts/renderItem.js");
+const NodeCache = require("node-cache");
+
+const cache = new NodeCache({ stdTTL: 604800 }); // 1 week in seconds
 
 class RenderCommand extends minecraftCommand {
   constructor(minecraft) {
     super(minecraft);
 
     this.name = "render";
-    this.aliases = ["inv", "i", "inventory", "i"];
+    this.aliases = ["inv", "i", "inventory", "i", "show"];
     this.description = "Renders item of specified user.";
     this.options = [
       {
@@ -27,12 +30,11 @@ class RenderCommand extends minecraftCommand {
 
   async onCommand(username, message) {
     try {
-
-      return;
       let itemNumber = 0;
       const arg = this.getArgs(message);
       if (!arg[0]) {
         this.send("/gc Wrong Usage: !render [name] [slot] | !render [slot]");
+        return;
       }
       if (!isNaN(Number(arg[0]))) {
         itemNumber = arg[0];
@@ -47,7 +49,12 @@ class RenderCommand extends minecraftCommand {
         }
       }
 
-      const profile = await getLatestProfile(username);
+      let profile = cache.get(username);
+
+      if (!profile) {
+        profile = await getLatestProfile(username);
+        cache.set(username, profile);
+      }
 
       username = formatUsername(username, profile.profileData?.game_mode);
 

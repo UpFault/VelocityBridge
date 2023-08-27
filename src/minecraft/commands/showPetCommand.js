@@ -4,6 +4,9 @@ const { renderLore } = require("../../contracts/renderItem.js");
 const { getLatestProfile } = require("../../../API/functions/getLatestProfile.js");
 const getPets = require("../../../API/stats/pets.js");
 const { uploadImage } = require("../../contracts/API/imgurAPI.js");
+const NodeCache = require("node-cache");
+
+const cache = new NodeCache({ stdTTL: 604800 }); // 1 week in seconds
 
 class RenderCommand extends minecraftCommand {
   constructor(minecraft) {
@@ -23,11 +26,14 @@ class RenderCommand extends minecraftCommand {
 
   async onCommand(username, message) {
     try {
-
-      return;
       username = this.getArgs(message)[0] || username;
 
-      const data = await getLatestProfile(username);
+      let data = cache.get(username);
+
+      if (!data) {
+        data = await getLatestProfile(username);
+        cache.set(username, data);
+      }
 
       username = formatUsername(username, data.profileData?.game_mode);
 
@@ -36,7 +42,7 @@ class RenderCommand extends minecraftCommand {
       const pet = profile.pets.find((pet) => pet.active === true);
 
       if (pet === undefined) {
-        return this.send(`/gc ${username} does not have pet equiped.`);
+        return this.send(`/gc ${username} does not have a pet equipped.`);
       }
 
       const renderedItem = await renderLore(

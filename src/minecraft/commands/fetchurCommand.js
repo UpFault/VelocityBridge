@@ -14,7 +14,6 @@ class FetchurCommand extends minecraftCommand {
   async onCommand(username, message) {
     try {
 
-      return;
       const { text, description } = getFetchur();
 
       this.send(`/gc Fetchur Requests: ${text} | Description: ${description}`);

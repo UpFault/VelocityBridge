@@ -7,6 +7,9 @@ const getSkills = require("../../../API/stats/skills.js");
 const getSlayer = require("../../../API/stats/slayer.js");
 const getWeight = require("../../../API/stats/weight.js");
 const { getNetworth } = require("skyhelper-networth");
+const NodeCache = require("node-cache");
+
+const cache = new NodeCache({ stdTTL: 604800 }); // 1 week in seconds
 
 class SkyblockCommand extends minecraftCommand {
   constructor(minecraft) {
@@ -26,11 +29,15 @@ class SkyblockCommand extends minecraftCommand {
 
   async onCommand(username, message) {
     try {
-
-      return;
       username = this.getArgs(message)[0] || username;
 
-      const data = await getLatestProfile(username);
+      let data = cache.get(username);
+
+      if (!data) {
+        data = await getLatestProfile(username);
+        cache.set(username, data);
+      }
+
       username = formatUsername(username, data.profileData.game_mode);
 
       const [skills, slayer, networth, weight, dungeons, talismans] = await Promise.all([
@@ -46,7 +53,6 @@ class SkyblockCommand extends minecraftCommand {
       ]);
 
       const senitherWeight = Math.floor(weight?.senither?.total || 0).toLocaleString();
-      const lilyWeight = Math.floor(weight?.lily?.total || 0).toLocaleString();
       const skillAverage = (
         Object.keys(skills)
           .filter((skill) => !["runecrafting", "social"].includes(skill))
@@ -71,7 +77,7 @@ class SkyblockCommand extends minecraftCommand {
       this.send(
         `/gc ${username}'s Level: ${
           data.profile.leveling?.experience ? data.profile.leveling.experience / 100 : 0
-        } | Senither Weight: ${senitherWeight} | Lily Weight: ${lilyWeight} | Skill Average: ${skillAverage} | Slayer: ${slayerXp} | Catacombs: ${catacombsLevel} | Class Average: ${classAverage} | Networth: ${networthValue} | Accessories: ${talismanCount} | Recombobulated: ${recombobulatedCount} | Enriched: ${enrichmentCount}`
+        } | Senither Weight: ${senitherWeight} | Skill Average: ${skillAverage} | Slayer: ${slayerXp} | Catacombs: ${catacombsLevel} | Class Average: ${classAverage} | Networth: ${networthValue} | Accessories: ${talismanCount} | Recombobulated: ${recombobulatedCount} | Enriched: ${enrichmentCount}`
       );
     } catch (error) {
       console.log(error);

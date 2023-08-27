@@ -133,11 +133,7 @@ class StateHandler extends eventHandler {
         }
 
         bot.chat(
-          `/oc ${username} ${meetRequirements ? "meets" : "Doesn't meet"} Requirements. [BW] [${
-            player.stats.bedwars.level
-          }✫] FKDR: ${player.stats.bedwars.finalKDRatio} | [SW] [${player.stats.skywars.level}✫] KDR: ${
-            player.stats.skywars.KDRatio
-          } | [Duels] Wins: ${player.stats.duels.wins.toLocaleString()} WLR: ${player.stats.duels.WLRatio.toLocaleString()} | SB Weight: ${weight.toLocaleString()} | SB Level: ${skyblockLevel.toLocaleString()}`
+          `/oc ${username} ${meetRequirements ? "meets" : "Doesn't meet"} Requirements. SB Weight: ${weight.toLocaleString()} | SB Level: ${skyblockLevel.toLocaleString()}`
         );
         await delay(1000);
 

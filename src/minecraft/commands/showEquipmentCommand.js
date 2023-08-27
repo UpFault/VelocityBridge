@@ -3,6 +3,9 @@ const { uploadImage } = require("../../contracts/API/imgurAPI.js");
 const { decodeData, formatUsername } = require("../../contracts/helperFunctions.js");
 const minecraftCommand = require("../../contracts/minecraftCommand.js");
 const { renderLore } = require("../../contracts/renderItem.js");
+const NodeCache = require("node-cache");
+
+const cache = new NodeCache({ stdTTL: 604800 }); // 1 week in seconds
 
 class EquipmentCommand extends minecraftCommand {
   constructor(minecraft) {
@@ -22,11 +25,14 @@ class EquipmentCommand extends minecraftCommand {
 
   async onCommand(username, message) {
     try {
-
-      return;
       username = this.getArgs(message)[0] || username;
 
-      const profile = await getLatestProfile(username);
+      let profile = cache.get(username);
+
+      if (!profile) {
+        profile = await getLatestProfile(username);
+        cache.set(username, profile);
+      }
 
       username = formatUsername(username, profile.profileData?.game_mode);
 

@@ -6,6 +6,9 @@ const getRank = require("../../../API/stats/rank.js");
 const axios = require("axios");
 const { getUUID } = require("../../contracts/API/PlayerDBAPI.js");
 const { uploadImage } = require("../../contracts/API/imgurAPI.js");
+const NodeCache = require("node-cache");
+
+const cache = new NodeCache({ stdTTL: 604800 }); // 1 week in seconds
 
 class AuctionHouseCommand extends minecraftCommand {
   constructor(minecraft) {
@@ -25,22 +28,27 @@ class AuctionHouseCommand extends minecraftCommand {
 
   async onCommand(username, message) {
     try {
-
-      return;
       username = this.getArgs(message)[0] || username;
 
       let string = "";
 
       const uuid = await getUUID(username);
 
-      const { hypixelAPIkey } = config.minecraft.API;
-      const [auctionResponse, playerResponse] = await Promise.all([
-        axios.get(`https://api.hypixel.net/skyblock/auction?key=${hypixelAPIkey}&player=${uuid}`),
-        axios.get(`https://api.hypixel.net/player?key=${hypixelAPIkey}&uuid=${uuid}`),
-      ]);
+      let data = cache.get(uuid);
 
-      const auctions = auctionResponse.data?.auctions || [];
-      const player = playerResponse.data?.player || {};
+      if (!data) {
+        const { hypixelAPIkey } = config.minecraft.API;
+        const [auctionResponse, playerResponse] = await Promise.all([
+          axios.get(`https://api.hypixel.net/skyblock/auction?key=${hypixelAPIkey}&player=${uuid}`),
+          axios.get(`https://api.hypixel.net/player?key=${hypixelAPIkey}&uuid=${uuid}`),
+        ]);
+
+        data = { auctions: auctionResponse.data?.auctions || [], player: playerResponse.data?.player || {} };
+        cache.set(uuid, data);
+      }
+
+      const auctions = data.auctions;
+      const player = data.player;
 
       if (auctions.length === 0) {
         return this.send(`/gc This player has no active auctions.`);
@@ -59,13 +67,20 @@ class AuctionHouseCommand extends minecraftCommand {
           } else if (auction.bids.length > 0) {
             const bidderUUID = auction.bids[auction.bids.length - 1].bidder;
 
-            const bidderResponse = await axios.get(
-              `https://api.hypixel.net/player?key=${hypixelAPIkey}&uuid=${bidderUUID}`
-            );
+            let bidderData = cache.get(bidderUUID);
 
-            const bidder = bidderResponse.data?.player || {};
+            if (!bidderData) {
+              const bidderResponse = await axios.get(
+                `https://api.hypixel.net/player?key=${hypixelAPIkey}&uuid=${bidderUUID}`
+              );
+
+              bidderData = bidderResponse.data?.player || {};
+              cache.set(bidderUUID, bidderData);
+            }
+
+            const bidder = bidderData;
+
             if (bidder === undefined) {
-              // eslint-disable-next-line no-throw-literal
               throw `Failed to get bidder for auction ${auction.uuid}`;
             }
 

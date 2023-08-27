@@ -2,6 +2,9 @@ const minecraftCommand = require("../../contracts/minecraftCommand.js");
 const getDungeons = require("../../../API/stats/dungeons.js");
 const { formatNumber, formatUsername } = require("../../contracts/helperFunctions.js");
 const { getLatestProfile } = require("../../../API/functions/getLatestProfile.js");
+const NodeCache = require("node-cache");
+
+const cache = new NodeCache({ stdTTL: 604800 }); // 1 week in seconds
 
 class CatacombsCommand extends minecraftCommand {
   constructor(minecraft) {
@@ -21,18 +24,20 @@ class CatacombsCommand extends minecraftCommand {
 
   async onCommand(username, message) {
     try {
-
-      return;
       username = this.getArgs(message)[0] || username;
 
-      const data = await getLatestProfile(username);
+      let data = cache.get(username);
+
+      if (!data) {
+        data = await getLatestProfile(username);
+        cache.set(username, data);
+      }
 
       username = formatUsername(username, data.profileData?.game_mode);
 
       const dungeons = getDungeons(data.player, data.profile);
 
       if (dungeons == null) {
-        // eslint-disable-next-line no-throw-literal
         throw `${username} has never played dungeons on ${data.profileData.cute_name}.`;
       }
 

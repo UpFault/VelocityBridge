@@ -3,6 +3,9 @@ const { getLatestProfile } = require("../../../API/functions/getLatestProfile.js
 const getSlayer = require("../../../API/stats/slayer.js");
 const { formatNumber, formatUsername } = require("../../contracts/helperFunctions.js");
 const { capitalize } = require("lodash");
+const NodeCache = require("node-cache");
+
+const cache = new NodeCache({ stdTTL: 604800 }); // 1 week in seconds
 
 class SlayersCommand extends minecraftCommand {
   constructor(minecraft) {
@@ -27,8 +30,6 @@ class SlayersCommand extends minecraftCommand {
 
   async onCommand(username, message) {
     try {
-
-      return;
       const args = this.getArgs(message);
       const slayer = [
         "zombie",
@@ -48,7 +49,12 @@ class SlayersCommand extends minecraftCommand {
       const slayerType = slayer.includes(args[1]) ? args[1] : null;
       username = args[0] || username;
 
-      const data = await getLatestProfile(username);
+      let data = cache.get(username);
+
+      if (!data) {
+        data = await getLatestProfile(username);
+        cache.set(username, data);
+      }
 
       username = formatUsername(username, data.profileData.cute_name);
 
