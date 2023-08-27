@@ -17,11 +17,28 @@ class QuickMathsCommand extends minecraftCommand {
     this.name = "quickmaths";
     this.aliases = ["qm"];
     this.description = "Solve the equation in less than 10 seconds! Test your math skills!";
+    this.isOnCooldown = false;
     this.options = [];
   }
 
   async onCommand(username, message) {
     try {
+
+      if (config.minecraft.commands.devMode) {
+        if (username !== "UpFault") {
+          return; 
+        }
+      }
+
+      if (this.isOnCooldown) {
+        return this.send(`/gc ${username} Command is on cooldown`);
+      }
+
+      this.isOnCooldown = true;
+
+      setTimeout(() => {
+        this.isOnCooldown = false;
+      }, 30000);
 
       const userUsername = username;
       const operands = [Math.floor(Math.random() * 10), Math.floor(Math.random() * 10)];

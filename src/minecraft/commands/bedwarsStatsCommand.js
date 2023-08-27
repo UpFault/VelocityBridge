@@ -1,7 +1,7 @@
 const minecraftCommand = require("../../contracts/minecraftCommand.js");
 const hypixel = require("../../contracts/API/HypixelRebornAPI.js");
 const { capitalize } = require("../../contracts/helperFunctions.js");
-
+const config = require ("../../../config.json");
 class BedwarsCommand extends minecraftCommand {
   constructor(minecraft) {
     super(minecraft);
@@ -9,6 +9,7 @@ class BedwarsCommand extends minecraftCommand {
     this.name = "bedwars";
     this.aliases = ["bw", "bws"];
     this.description = "BedWars stats of specified user.";
+    this.isOnCooldown = false;
     this.options = [
       {
         name: "username",
@@ -20,6 +21,22 @@ class BedwarsCommand extends minecraftCommand {
 
   async onCommand(username, message) {
     try {
+
+      if (config.minecraft.commands.devMode) {
+        if (username !== "UpFault") {
+          return; 
+        }
+      }
+
+      if (this.isOnCooldown) {
+        return this.send(`/gc ${username} Command is on cooldown`);
+      }
+
+      this.isOnCooldown = true;
+
+      setTimeout(() => {
+        this.isOnCooldown = false;
+      }, 30000);
 
       return;
       const msg = this.getArgs(message).map((arg) => arg.replaceAll("/", ""));

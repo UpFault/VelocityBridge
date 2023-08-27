@@ -4,7 +4,7 @@ const { decodeData, formatUsername } = require("../../contracts/helperFunctions.
 const minecraftCommand = require("../../contracts/minecraftCommand.js");
 const { renderLore } = require("../../contracts/renderItem.js");
 const NodeCache = require("node-cache");
-
+const config = require ("../../../config.json");
 const cache = new NodeCache({ stdTTL: 604800 }); // 1 week in seconds
 
 class EquipmentCommand extends minecraftCommand {
@@ -14,6 +14,7 @@ class EquipmentCommand extends minecraftCommand {
     this.name = "equipment";
     this.aliases = [];
     this.description = "Renders equipment of specified user.";
+    this.isOnCooldown = false;
     this.options = [
       {
         name: "username",
@@ -25,6 +26,23 @@ class EquipmentCommand extends minecraftCommand {
 
   async onCommand(username, message) {
     try {
+
+      if (config.minecraft.commands.devMode) {
+        if (username !== "UpFault") {
+          return; 
+        }
+      }
+
+      if (this.isOnCooldown) {
+        return this.send(`/gc ${username} Command is on cooldown`);
+      }
+
+      this.isOnCooldown = true;
+
+      setTimeout(() => {
+        this.isOnCooldown = false;
+      }, 30000);
+
       username = this.getArgs(message)[0] || username;
 
       let profile = cache.get(username);

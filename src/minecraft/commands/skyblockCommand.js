@@ -8,7 +8,7 @@ const getSlayer = require("../../../API/stats/slayer.js");
 const getWeight = require("../../../API/stats/weight.js");
 const { getNetworth } = require("skyhelper-networth");
 const NodeCache = require("node-cache");
-
+const config = require ("../../../config.json");
 const cache = new NodeCache({ stdTTL: 604800 }); // 1 week in seconds
 
 class SkyblockCommand extends minecraftCommand {
@@ -18,6 +18,7 @@ class SkyblockCommand extends minecraftCommand {
     this.name = "skyblock";
     this.aliases = ["stats", "sb"];
     this.description = "Skyblock Stats of specified user.";
+    this.isOnCooldown = false;
     this.options = [
       {
         name: "username",
@@ -29,6 +30,23 @@ class SkyblockCommand extends minecraftCommand {
 
   async onCommand(username, message) {
     try {
+
+      if (config.minecraft.commands.devMode) {
+        if (username !== "UpFault") {
+          return; 
+        }
+      }
+
+      if (this.isOnCooldown) {
+        return this.send(`/gc ${username} Command is on cooldown`);
+      }
+
+      this.isOnCooldown = true;
+
+      setTimeout(() => {
+        this.isOnCooldown = false;
+      }, 30000);
+
       username = this.getArgs(message)[0] || username;
 
       let data = cache.get(username);

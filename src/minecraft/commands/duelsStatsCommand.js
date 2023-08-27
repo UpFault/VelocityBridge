@@ -1,7 +1,7 @@
 const minecraftCommand = require("../../contracts/minecraftCommand.js");
 const hypixel = require("../../contracts/API/HypixelRebornAPI.js");
 const { formatNumber } = require("../../contracts/helperFunctions.js");
-
+const config = require ("../../../config.json");
 class DuelsStatsCommand extends minecraftCommand {
   constructor(minecraft) {
     super(minecraft);
@@ -9,6 +9,7 @@ class DuelsStatsCommand extends minecraftCommand {
     this.name = "duels";
     this.aliases = ["duel"];
     this.description = "Duel stats of specified user.";
+    this.isOnCooldown = false;
     this.options = [
       {
         name: "username",
@@ -26,6 +27,22 @@ class DuelsStatsCommand extends minecraftCommand {
   async onCommand(username, message) {
     try {
 
+      if (config.minecraft.commands.devMode) {
+        if (username !== "UpFault") {
+          return; 
+        }
+      }
+
+      if (this.isOnCooldown) {
+        return this.send(`/gc ${username} Command is on cooldown`);
+      }
+
+      this.isOnCooldown = true;
+
+      setTimeout(() => {
+        this.isOnCooldown = false;
+      }, 30000);
+      
       return;
       const duelTypes = [
         "blitz",

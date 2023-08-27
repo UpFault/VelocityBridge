@@ -1,6 +1,6 @@
 const minecraftCommand = require("../../contracts/minecraftCommand.js");
 const hypixel = require("../../contracts/API/HypixelRebornAPI.js");
-
+const config = require ("../../../config.json");
 class EightBallCommand extends minecraftCommand {
   constructor(minecraft) {
     super(minecraft);
@@ -8,6 +8,7 @@ class EightBallCommand extends minecraftCommand {
     this.name = "megawalls";
     this.aliases = ["mw"];
     this.description = "View the Megawalls stats of a player";
+    this.isOnCooldown = false;
     this.options = [
       {
         name: "username",
@@ -20,6 +21,22 @@ class EightBallCommand extends minecraftCommand {
   async onCommand(username, message) {
     try {
       
+      if (config.minecraft.commands.devMode) {
+        if (username !== "UpFault") {
+          return; 
+        }
+      }
+
+      if (this.isOnCooldown) {
+        return this.send(`/gc ${username} Command is on cooldown`);
+      }
+
+      this.isOnCooldown = true;
+
+      setTimeout(() => {
+        this.isOnCooldown = false;
+      }, 30000);
+
       return;
       username = this.getArgs(message)[0] || username;
 

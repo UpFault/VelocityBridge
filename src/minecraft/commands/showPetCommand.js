@@ -5,7 +5,7 @@ const { getLatestProfile } = require("../../../API/functions/getLatestProfile.js
 const getPets = require("../../../API/stats/pets.js");
 const { uploadImage } = require("../../contracts/API/imgurAPI.js");
 const NodeCache = require("node-cache");
-
+const config = require ("../../../config.json");
 const cache = new NodeCache({ stdTTL: 604800 }); // 1 week in seconds
 
 class RenderCommand extends minecraftCommand {
@@ -15,6 +15,7 @@ class RenderCommand extends minecraftCommand {
     this.name = "pet";
     this.aliases = ["pets"];
     this.description = "Renders active pet of specified user.";
+    this.isOnCooldown = false;
     this.options = [
       {
         name: "username",
@@ -26,6 +27,23 @@ class RenderCommand extends minecraftCommand {
 
   async onCommand(username, message) {
     try {
+
+      if (config.minecraft.commands.devMode) {
+        if (username !== "UpFault") {
+          return; 
+        }
+      }
+
+      if (this.isOnCooldown) {
+        return this.send(`/gc ${username} Command is on cooldown`);
+      }
+
+      this.isOnCooldown = true;
+
+      setTimeout(() => {
+        this.isOnCooldown = false;
+      }, 30000);
+
       username = this.getArgs(message)[0] || username;
 
       let data = cache.get(username);

@@ -4,7 +4,7 @@ const { decodeData, formatUsername } = require("../../contracts/helperFunctions.
 const minecraftCommand = require("../../contracts/minecraftCommand.js");
 const { renderLore } = require("../../contracts/renderItem.js");
 const NodeCache = require("node-cache");
-
+const config = require ("../../../config.json");
 const cache = new NodeCache({ stdTTL: 604800 }); // 1 week in seconds
 
 class RenderCommand extends minecraftCommand {
@@ -14,6 +14,7 @@ class RenderCommand extends minecraftCommand {
     this.name = "render";
     this.aliases = ["inv", "i", "inventory", "i", "show"];
     this.description = "Renders item of specified user.";
+    this.isOnCooldown = false;
     this.options = [
       {
         name: "username",
@@ -30,6 +31,23 @@ class RenderCommand extends minecraftCommand {
 
   async onCommand(username, message) {
     try {
+
+      if (config.minecraft.commands.devMode) {
+        if (username !== "UpFault") {
+          return; 
+        }
+      }
+
+      if (this.isOnCooldown) {
+        return this.send(`/gc ${username} Command is on cooldown`);
+      }
+
+      this.isOnCooldown = true;
+
+      setTimeout(() => {
+        this.isOnCooldown = false;
+      }, 30000);
+
       let itemNumber = 0;
       const arg = this.getArgs(message);
       if (!arg[0]) {

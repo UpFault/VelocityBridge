@@ -2,7 +2,7 @@ const minecraftCommand = require("../../contracts/minecraftCommand.js");
 const hypixel = require("../../contracts/API/HypixelRebornAPI.js");
 const { capitalize, formatNumber } = require("../../contracts/helperFunctions.js");
 const NodeCache = require("node-cache");
-
+const config = require ("../../../config.json");
 const cache = new NodeCache({ stdTTL: 604800 }); // 1 week in seconds
 
 class GuildInformationCommand extends minecraftCommand {
@@ -12,6 +12,7 @@ class GuildInformationCommand extends minecraftCommand {
     this.name = "guild";
     this.aliases = ["g"];
     this.description = "View information of a guild";
+    this.isOnCooldown = false;
     this.options = [
       {
         name: "guild",
@@ -23,6 +24,23 @@ class GuildInformationCommand extends minecraftCommand {
 
   async onCommand(username, message) {
     try {
+
+      if (config.minecraft.commands.devMode) {
+        if (username !== "UpFault") {
+          return; 
+        }
+      }
+
+      if (this.isOnCooldown) {
+        return this.send(`/gc ${username} Command is on cooldown`);
+      }
+
+      this.isOnCooldown = true;
+
+      setTimeout(() => {
+        this.isOnCooldown = false;
+      }, 30000);
+
       const guildName = this.getArgs(message)
         .map((arg) => capitalize(arg))
         .join(" ");

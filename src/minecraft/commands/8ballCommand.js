@@ -1,6 +1,6 @@
 const minecraftCommand = require("../../contracts/minecraftCommand.js");
 const axios = require("axios");
-
+const config = require ("../../../config.json");
 class EightBallCommand extends minecraftCommand {
   constructor(minecraft) {
     super(minecraft);
@@ -8,6 +8,7 @@ class EightBallCommand extends minecraftCommand {
     this.name = "8ball";
     this.aliases = ["8b"];
     this.description = "Ask an 8ball a question.";
+    this.isOnCooldown = false;
     this.options = [
       {
         name: "question",
@@ -19,6 +20,22 @@ class EightBallCommand extends minecraftCommand {
 
   async onCommand(username, message) {
     try {
+
+      if (config.minecraft.commands.devMode) {
+        if (username !== "UpFault") {
+          return; 
+        }
+      }
+
+      if (this.isOnCooldown) {
+        return this.send(`/gc ${username} Command is on cooldown`);
+      }
+
+      this.isOnCooldown = true;
+
+      setTimeout(() => {
+        this.isOnCooldown = false;
+      }, 30000);
 
       if (this.getArgs(message).length === 0) {
         // eslint-disable-next-line no-throw-literal

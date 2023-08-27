@@ -4,7 +4,7 @@ const getSlayer = require("../../../API/stats/slayer.js");
 const { formatNumber, formatUsername } = require("../../contracts/helperFunctions.js");
 const { capitalize } = require("lodash");
 const NodeCache = require("node-cache");
-
+const config = require ("../../../config.json");
 const cache = new NodeCache({ stdTTL: 604800 }); // 1 week in seconds
 
 class SlayersCommand extends minecraftCommand {
@@ -14,6 +14,7 @@ class SlayersCommand extends minecraftCommand {
     this.name = "slayer";
     this.aliases = ["slayers"];
     this.description = "Slayer of specified user.";
+    this.isOnCooldown = false;
     this.options = [
       {
         name: "username",
@@ -30,6 +31,23 @@ class SlayersCommand extends minecraftCommand {
 
   async onCommand(username, message) {
     try {
+
+      if (config.minecraft.commands.devMode) {
+        if (username !== "UpFault") {
+          return; 
+        }
+      }
+
+      if (this.isOnCooldown) {
+        return this.send(`/gc ${username} Command is on cooldown`);
+      }
+
+      this.isOnCooldown = true;
+
+      setTimeout(() => {
+        this.isOnCooldown = false;
+      }, 30000);
+
       const args = this.getArgs(message);
       const slayer = [
         "zombie",

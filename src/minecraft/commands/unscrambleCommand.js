@@ -1,7 +1,7 @@
 const { getRandomWord, scrambleWord } = require("../constants/words.js");
 const minecraftCommand = require("../../contracts/minecraftCommand.js");
 const getWord = (message) => message.split(" ").pop();
-
+const config = require ("../../../config.json");
 const cooldowns = new Map();
 
 class unscrambleCommand extends minecraftCommand {
@@ -11,6 +11,7 @@ class unscrambleCommand extends minecraftCommand {
     this.name = "unscramble";
     this.aliases = ["unscramble", "unscrambleme", "unscrambleme", "us"];
     this.description = "Unscramble the word and type it in chat to win!";
+    this.isOnCooldown = false;
     this.options = [
       {
         name: "length",
@@ -23,6 +24,22 @@ class unscrambleCommand extends minecraftCommand {
 
   async onCommand(username, message) {
     try {
+
+      if (config.minecraft.commands.devMode) {
+        if (username !== "UpFault") {
+          return; 
+        }
+      }
+
+      if (this.isOnCooldown) {
+        return this.send(`/gc ${username} Command is on cooldown`);
+      }
+
+      this.isOnCooldown = true;
+
+      setTimeout(() => {
+        this.isOnCooldown = false;
+      }, 30000);
 
       const userUsername = username;
       const length = this.getArgs(message)[0];

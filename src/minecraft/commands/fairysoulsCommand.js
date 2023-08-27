@@ -1,7 +1,7 @@
 const minecraftCommand = require("../../contracts/minecraftCommand.js");
 const { getLatestProfile } = require("../../../API/functions/getLatestProfile.js");
 const { formatUsername } = require("../../contracts/helperFunctions.js");
-
+const config = require ("../../../config.json");
 class FairySoulsCommand extends minecraftCommand {
   constructor(minecraft) {
     super(minecraft);
@@ -9,6 +9,7 @@ class FairySoulsCommand extends minecraftCommand {
     this.name = "fairysouls";
     this.aliases = ["fs"];
     this.description = "Fairy Souls of specified user.";
+    this.isOnCooldown = false;
     this.options = [
       {
         name: "username",
@@ -20,6 +21,22 @@ class FairySoulsCommand extends minecraftCommand {
 
   async onCommand(username, message) {
     try {
+
+      if (config.minecraft.commands.devMode) {
+        if (username !== "UpFault") {
+          return; 
+        }
+      }
+
+      if (this.isOnCooldown) {
+        return this.send(`/gc ${username} Command is on cooldown`);
+      }
+
+      this.isOnCooldown = true;
+
+      setTimeout(() => {
+        this.isOnCooldown = false;
+      }, 30000);
 
       return;
       username = this.getArgs(message)[0] || username;

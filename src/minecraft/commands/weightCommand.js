@@ -3,9 +3,8 @@ const { getLatestProfile } = require("../../../API/functions/getLatestProfile.js
 const getWeight = require("../../../API/stats/weight.js");
 const { formatUsername, formatNumber } = require("../../contracts/helperFunctions.js");
 const NodeCache = require("node-cache");
-
+const config = require ("../../../config.json");
 const cache = new NodeCache({ stdTTL: 604800 }); // 1 week in seconds
-const commandCooldowns = new Set();
 
 class StatsCommand extends minecraftCommand {
   constructor(minecraft) {
@@ -14,6 +13,7 @@ class StatsCommand extends minecraftCommand {
     this.name = "weight";
     this.aliases = ["w"];
     this.description = "Skyblock Weight of specified user.";
+    this.isOnCooldown = false;
     this.options = [
       {
         name: "username",
@@ -25,15 +25,22 @@ class StatsCommand extends minecraftCommand {
 
   async onCommand(username, message) {
     try {
-      if (commandCooldowns.has(username)) {
-        this.send(`/gc Please wait a bit before using this command again.`);
-        return;
+
+      if (config.minecraft.commands.devMode) {
+        if (username !== "UpFault") {
+          return; 
+        }
       }
 
-      commandCooldowns.add(username);
+      if (this.isOnCooldown) {
+        return this.send(`/gc ${username} Command is on cooldown`);
+      }
+
+      this.isOnCooldown = true;
+
       setTimeout(() => {
-        commandCooldowns.delete(username);
-      }, 60000); // 1 minute in milliseconds
+        this.isOnCooldown = false;
+      }, 30000);
 
       username = this.getArgs(message)[0] || username;
 

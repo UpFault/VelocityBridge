@@ -2,9 +2,8 @@ const minecraftCommand = require("../../contracts/minecraftCommand.js");
 const hypixel = require("../../contracts/API/HypixelRebornAPI.js");
 const { getUUID } = require("../../contracts/API/PlayerDBAPI.js");
 const NodeCache = require("node-cache");
-
+const config = require ("../../../config.json");
 const cache = new NodeCache({ stdTTL: 604800 }); // 1 week in seconds
-const commandCooldowns = new Set();
 
 class GuildExperienceCommand extends minecraftCommand {
   constructor(minecraft) {
@@ -13,6 +12,7 @@ class GuildExperienceCommand extends minecraftCommand {
     this.name = "guildexp";
     this.aliases = ["gexp"];
     this.description = "Guilds experience of specified user.";
+    this.isOnCooldown = false;
     this.options = [
       {
         name: "username",
@@ -24,15 +24,22 @@ class GuildExperienceCommand extends minecraftCommand {
 
   async onCommand(username, message) {
     try {
-      if (commandCooldowns.has(username)) {
-        this.send(`/gc Please wait a bit before using this command again.`);
-        return;
+
+      if (config.minecraft.commands.devMode) {
+        if (username !== "UpFault") {
+          return; 
+        }
       }
 
-      commandCooldowns.add(username);
+      if (this.isOnCooldown) {
+        return this.send(`/gc ${username} Command is on cooldown`);
+      }
+
+      this.isOnCooldown = true;
+
       setTimeout(() => {
-        commandCooldowns.delete(username);
-      }, 10000); // 10 seconds in milliseconds
+        this.isOnCooldown = false;
+      }, 30000);
 
       username = this.getArgs(message)[0] || username;
 

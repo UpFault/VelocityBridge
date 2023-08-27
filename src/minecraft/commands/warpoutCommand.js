@@ -1,6 +1,6 @@
 const minecraftCommand = require("../../contracts/minecraftCommand.js");
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
+const config = require ("../../../config.json");
 class warpoutCommand extends minecraftCommand {
   constructor(minecraft) {
     super(minecraft);
@@ -16,12 +16,19 @@ class warpoutCommand extends minecraftCommand {
   async onCommand(username, message) {
     try {
 
-      return;
+      if (config.minecraft.commands.devMode) {
+        if (username !== "UpFault") {
+          return; 
+        }
+      }
+
       if (this.isOnCooldown) {
         return this.send(`/gc ${username} Command is on cooldown`);
       }
 
       this.isOnCooldown = true;
+
+      return;
 
       const user = this.getArgs(message)[0];
       if (user === undefined) {

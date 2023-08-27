@@ -3,7 +3,7 @@ const { formatUsername } = require("../../contracts/helperFunctions.js");
 const minecraftCommand = require("../../contracts/minecraftCommand.js");
 const { getBestiary } = require("../../../API/stats/bestiary.js");
 const NodeCache = require("node-cache");
-
+const config = require ("../../../config.json");
 const cache = new NodeCache({ stdTTL: 604800 }); // 1 week in seconds
 
 class bestiaryCommand extends minecraftCommand {
@@ -13,6 +13,7 @@ class bestiaryCommand extends minecraftCommand {
     this.name = "bestiary";
     this.aliases = ["be"];
     this.description = "Bestiary of specified user.";
+    this.isOnCooldown = false;
     this.options = [
       {
         name: "username",
@@ -24,6 +25,23 @@ class bestiaryCommand extends minecraftCommand {
 
   async onCommand(username, message) {
     try {
+
+      if (config.minecraft.commands.devMode) {
+        if (username !== "UpFault") {
+          return; 
+        }
+      }
+
+      if (this.isOnCooldown) {
+        return this.send(`/gc ${username} Command is on cooldown`);
+      }
+
+      this.isOnCooldown = true;
+
+      setTimeout(() => {
+        this.isOnCooldown = false;
+      }, 30000);
+
       const playerUsername = username;
       username = this.getArgs(message)[0] || username;
 

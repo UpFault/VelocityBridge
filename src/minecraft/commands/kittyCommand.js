@@ -1,7 +1,8 @@
 const minecraftCommand = require("../../contracts/minecraftCommand.js");
 const { uploadImage } = require("../../contracts/API/imgurAPI.js");
 const axios = require("axios");
-const commandCooldowns = new Map();
+const config = require ("../../../config.json");
+
 class KittyCommand extends minecraftCommand {
   constructor(minecraft) {
     super(minecraft);
@@ -9,18 +10,28 @@ class KittyCommand extends minecraftCommand {
     this.name = "kitty";
     this.aliases = ["cat", "cutecat"];
     this.description = "Random image of cute cat.";
+    this.isOnCooldown = false;
     this.options = [];
   }
 
   async onCommand(username, message) {
     try {
-      const currentTime = Date.now();
-      const lastCommandTime = commandCooldowns.get(username);
 
-      if (lastCommandTime !== undefined && currentTime - lastCommandTime < 30000) {
-        this.send(`/gc Please wait a bit before using this command again.`);
-        return;
+      if (config.minecraft.commands.devMode) {
+        if (username !== "UpFault") {
+          return; 
+        }
       }
+
+      if (this.isOnCooldown) {
+        return this.send(`/gc ${username} Command is on cooldown`);
+      }
+
+      this.isOnCooldown = true;
+
+      setTimeout(() => {
+        this.isOnCooldown = false;
+      }, 30000);
 
       const { data } = await axios.get(`https://api.thecatapi.com/v1/images/search`);
 

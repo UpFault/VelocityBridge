@@ -17,6 +17,7 @@ class AuctionHouseCommand extends minecraftCommand {
     this.name = "auction";
     this.aliases = ["ah", "auctions"];
     this.description = "Listed Auctions of specified user.";
+    this.isOnCooldown = false;
     this.options = [
       {
         name: "username",
@@ -28,6 +29,23 @@ class AuctionHouseCommand extends minecraftCommand {
 
   async onCommand(username, message) {
     try {
+
+      if (config.minecraft.commands.devMode) {
+        if (username !== "UpFault") {
+          return; 
+        }
+      }
+
+      if (this.isOnCooldown) {
+        return this.send(`/gc ${username} Command is on cooldown`);
+      }
+
+      this.isOnCooldown = true;
+
+      setTimeout(() => {
+        this.isOnCooldown = false;
+      }, 30000);
+
       username = this.getArgs(message)[0] || username;
 
       let string = "";
