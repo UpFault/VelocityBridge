@@ -38,6 +38,8 @@ class RenderCommand extends minecraftCommand {
         }
       }
 
+      return;
+
       if (this.isOnCooldown) {
         return this.send(`/gc ${username} Command is on cooldown`);
       }
